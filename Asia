@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vela EPR Comparative Calculator</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; }
+    label, select, input { display: block; margin: 10px 0; }
+    .container { display: flex; justify-content: space-between; gap: 50px; }
+    .panel { flex: 1; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
+    .output, .weight-display { margin-top: 20px; font-weight: bold; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>Vela vs LDPE EPR Comparative Calculator</h1>
+
+  <label for="productionRegion">Select Production Region:</label>
+  <select id="productionRegion">
+    <option value="italy">Italy</option>
+    <option value="asia">Asia</option>
+  </select>
+
+  <label for="bagSize">Select Bag Size:</label>
+  <select id="bagSize">
+    <option value="10x15">10x15 (2XS)</option>
+    <option value="15x20">15x20 (XS)</option>
+    <option value="20x25">20x25 (S)</option>
+    <option value="25x30">25x30 (M)</option>
+    <option value="30x40">30x40 (L)</option>
+    <option value="35x50">35x50 (XL)</option>
+    <option value="40x60">40x60 (2XL)</option>
+    <option value="50x75">50x75 (3XL)</option>
+  </select>
+
+  <label for="volume">Enter Volume of Bags:</label>
+  <input type="number" id="volume" value="1000" min="1" step="1" />
+
+  <label for="salesRegion">Select Country Where Bags Are Sold:</label>
+  <select id="salesRegion">
+    <option value="france">France</option>
+    <option value="germany">Germany</option>
+    <option value="italy">Italy</option>
+    <option value="spain">Spain</option>
+    <option value="netherlands">Netherlands</option>
+    <option value="uk">United Kingdom</option>
+    <option value="belgium">Belgium</option>
+    <option value="austria">Austria</option>
+  </select>
+
+  <div class="container">
+    <div class="panel">
+      <h2>Vela Classic (Paper)</h2>
+      <div class="weight-display">Weight (kg): <span id="velaWeight">0.0018</span></div>
+      <div class="output" id="velaResults"></div>
+    </div>
+    <div class="panel">
+      <h2>Virgin LDPE Polybag (Plastic)</h2>
+      <div class="weight-display">Weight (kg): <span id="ldpeWeight">0.0018</span></div>
+      <div class="output" id="ldpeResults"></div>
+    </div>
+  </div>
+
+  <script>
+    const weights = {
+      italy: {
+        "10x15": 0.0018,
+        "15x20": 0.0032,
+        "20x25": 0.0046,
+        "25x30": 0.0066,
+        "30x40": 0.0103,
+        "35x50": 0.0146,
+        "40x60": 0.0207,
+        "50x75": 0.0298
+      },
+      asia: {
+        "10x15": 0.0018,
+        "15x20": 0.0033,
+        "20x25": 0.0050,
+        "25x30": 0.0072,
+        "30x40": 0.0110,
+        "35x50": 0.0155,
+        "40x60": 0.0215,
+        "50x75": 0.0327
+      }
+    };
+
+    const feeRates = {
+      france:    { paper: { epr: 120, tax: 0 }, plastic: { epr: 140, tax: 250 } },
+      germany:   { paper: { epr: 130, tax: 0 }, plastic: { epr: 150, tax: 280 } },
+      italy:     { paper: { epr: 110, tax: 0 }, plastic: { epr: 130, tax: 240 } },
+      spain:     { paper: { epr: 100, tax: 0 }, plastic: { epr: 120, tax: 230 } },
+      netherlands:{ paper: { epr: 140, tax: 0 }, plastic: { epr: 160, tax: 300 } },
+      uk:        { paper: { epr: 130, tax: 0 }, plastic: { epr: 140, tax: 270 } },
+      belgium:   { paper: { epr: 120, tax: 0 }, plastic: { epr: 150, tax: 260 } },
+      austria:   { paper: { epr: 110, tax: 0 }, plastic: { epr: 130, tax: 250 } }
+    };
+
+    function calculateComparison() {
+      const size = document.getElementById('bagSize').value;
+      const region = document.getElementById('salesRegion').value;
+      const volume = parseInt(document.getElementById('volume').value);
+      const prodRegion = document.getElementById('productionRegion').value;
+
+      const weight = weights[prodRegion][size] || 0;
+      document.getElementById('velaWeight').textContent = weight.toFixed(4);
+      document.getElementById('ldpeWeight').textContent = weight.toFixed(4);
+
+      const vela = feeRates[region].paper;
+      const ldpe = feeRates[region].plastic;
+
+      const velaEpr = (vela.epr / 1000) * weight;
+      const velaTax = (vela.tax / 1000) * weight;
+      const velaTotal = (velaEpr + velaTax);
+
+      const ldpeEpr = (ldpe.epr / 1000) * weight;
+      const ldpeTax = (ldpe.tax / 1000) * weight;
+      const ldpeTotal = (ldpeEpr + ldpeTax);
+
+      document.getElementById('velaResults').innerText =
+        `EPR Fee per Bag: €${velaEpr.toFixed(4)}\n` +
+        `Plastic Tax per Bag: €${velaTax.toFixed(4)}\n` +
+        `Total per Bag: €${velaTotal.toFixed(4)}\n` +
+        `Total for ${volume} Bags: €${(velaTotal * volume).toFixed(2)}`;
+
+      document.getElementById('ldpeResults').innerText =
+        `EPR Fee per Bag: €${ldpeEpr.toFixed(4)}\n` +
+        `Plastic Tax per Bag: €${ldpeTax.toFixed(4)}\n` +
+        `Total per Bag: €${ldpeTotal.toFixed(4)}\n` +
+        `Total for ${volume} Bags: €${(ldpeTotal * volume).toFixed(2)}`;
+    }
+
+    document.querySelectorAll('#bagSize, #salesRegion, #volume, #productionRegion').forEach(el => el.addEventListener('change', calculateComparison));
+    calculateComparison();
+  </script>
+</body>
+</html>
