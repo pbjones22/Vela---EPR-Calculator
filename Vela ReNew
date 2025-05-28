@@ -3,25 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vela EPR Calculator</title>
+  <title>Vela EPR Comparative Calculator</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 40px; }
     label, select { display: block; margin: 10px 0; }
+    .container { display: flex; justify-content: space-between; gap: 50px; }
+    .panel { flex: 1; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
     .output, .weight-display { margin-top: 20px; font-weight: bold; white-space: pre-wrap; }
   </style>
 </head>
 <body>
-  <h1>Vela EPR Calculator</h1>
+  <h1>Vela vs LDPE EPR Comparative Calculator</h1>
 
   <label for="productionRegion">Select Production Region:</label>
   <select id="productionRegion">
     <option value="italy">Italy</option>
-  </select>
-
-  <label for="materialType">Select Bag Style / Material:</label>
-  <select id="materialType">
-    <option value="vela">Vela Classic (paper)</option>
-    <option value="ldpe">Virgin LDPE Polybag (plastic)</option>
   </select>
 
   <label for="bagSize">Select Bag Size:</label>
@@ -36,9 +32,16 @@
     <option value="50x75">50x75 (3XL)</option>
   </select>
 
-  <div class="weight-display">Weight (kg): <span id="weightDisplay">0.0018</span></div>
+  <label for="volume">Select Volume of Bags:</label>
+  <select id="volume">
+    <option value="100">100</option>
+    <option value="500">500</option>
+    <option value="1000">1,000</option>
+    <option value="5000">5,000</option>
+    <option value="10000">10,000</option>
+  </select>
 
-  <label for="salesRegion">Select Country Where Bag Is Sold:</label>
+  <label for="salesRegion">Select Country Where Bags Are Sold:</label>
   <select id="salesRegion">
     <option value="france">France</option>
     <option value="germany">Germany</option>
@@ -50,7 +53,18 @@
     <option value="austria">Austria</option>
   </select>
 
-  <div class="output" id="results"></div>
+  <div class="container">
+    <div class="panel">
+      <h2>Vela Classic (Paper)</h2>
+      <div class="weight-display">Weight (kg): <span id="velaWeight">0.0018</span></div>
+      <div class="output" id="velaResults"></div>
+    </div>
+    <div class="panel">
+      <h2>Virgin LDPE Polybag (Plastic)</h2>
+      <div class="weight-display">Weight (kg): <span id="ldpeWeight">0.0018</span></div>
+      <div class="output" id="ldpeResults"></div>
+    </div>
+  </div>
 
   <script>
     const weights = {
@@ -75,36 +89,41 @@
       austria:   { paper: { epr: 110, tax: 0 }, plastic: { epr: 130, tax: 250 } }
     };
 
-    function updateWeightAndFees() {
+    function calculateComparison() {
       const size = document.getElementById('bagSize').value;
+      const region = document.getElementById('salesRegion').value;
+      const volume = parseInt(document.getElementById('volume').value);
       const weight = weights[size] || 0;
-      document.getElementById('weightDisplay').textContent = weight.toFixed(4);
-      calculateFees(weight);
+
+      document.getElementById('velaWeight').textContent = weight.toFixed(4);
+      document.getElementById('ldpeWeight').textContent = weight.toFixed(4);
+
+      const vela = feeRates[region].paper;
+      const ldpe = feeRates[region].plastic;
+
+      const velaEpr = (vela.epr / 1000) * weight;
+      const velaTax = (vela.tax / 1000) * weight;
+      const velaTotal = (velaEpr + velaTax);
+
+      const ldpeEpr = (ldpe.epr / 1000) * weight;
+      const ldpeTax = (ldpe.tax / 1000) * weight;
+      const ldpeTotal = (ldpeEpr + ldpeTax);
+
+      document.getElementById('velaResults').innerText =
+        `EPR Fee per Bag: €${velaEpr.toFixed(4)}\n` +
+        `Plastic Tax per Bag: €${velaTax.toFixed(4)}\n` +
+        `Total per Bag: €${velaTotal.toFixed(4)}\n` +
+        `Total for ${volume} Bags: €${(velaTotal * volume).toFixed(2)}`;
+
+      document.getElementById('ldpeResults').innerText =
+        `EPR Fee per Bag: €${ldpeEpr.toFixed(4)}\n` +
+        `Plastic Tax per Bag: €${ldpeTax.toFixed(4)}\n` +
+        `Total per Bag: €${ldpeTotal.toFixed(4)}\n` +
+        `Total for ${volume} Bags: €${(ldpeTotal * volume).toFixed(2)}`;
     }
 
-    function calculateFees(weight) {
-      const material = document.getElementById('materialType').value;
-      const salesRegion = document.getElementById('salesRegion').value;
-
-      const materialType = material === 'vela' ? 'paper' : 'plastic';
-      const fees = feeRates[salesRegion][materialType];
-
-      const epr = (fees.epr / 1000) * weight;
-      const tax = (fees.tax / 1000) * weight;
-      const total = epr + tax;
-
-      document.getElementById('results').innerText =
-        `EPR Fee: €${epr.toFixed(4)}\n` +
-        `Plastic Tax: €${tax.toFixed(4)}\n` +
-        `Total Cost per Bag: €${total.toFixed(4)}`;
-    }
-
-    document.getElementById('productionRegion').addEventListener('change', updateWeightAndFees);
-    document.getElementById('materialType').addEventListener('change', updateWeightAndFees);
-    document.getElementById('bagSize').addEventListener('change', updateWeightAndFees);
-    document.getElementById('salesRegion').addEventListener('change', updateWeightAndFees);
-
-    updateWeightAndFees();
+    document.querySelectorAll('#bagSize, #salesRegion, #volume').forEach(el => el.addEventListener('change', calculateComparison));
+    calculateComparison();
   </script>
 </body>
 </html>
