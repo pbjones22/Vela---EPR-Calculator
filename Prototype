@@ -6,8 +6,8 @@
   <title>Vela EPR Calculator</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 40px; }
-    label, select, input { display: block; margin: 10px 0; }
-    .output { margin-top: 20px; font-weight: bold; white-space: pre-wrap; }
+    label, select { display: block; margin: 10px 0; }
+    .output, .weight-display { margin-top: 20px; font-weight: bold; white-space: pre-wrap; }
   </style>
 </head>
 <body>
@@ -36,17 +36,7 @@
     <option value="50x75">50x75 (3XL)</option>
   </select>
 
-  <label for="weight">Select Bag Weight (kg):</label>
-  <select id="weight">
-    <option value="0.0018">0.0018</option>
-    <option value="0.0032">0.0032</option>
-    <option value="0.0046">0.0046</option>
-    <option value="0.0066">0.0066</option>
-    <option value="0.0103">0.0103</option>
-    <option value="0.0146">0.0146</option>
-    <option value="0.0207">0.0207</option>
-    <option value="0.0298">0.0298</option>
-  </select>
+  <div class="weight-display">Weight (kg): <span id="weightDisplay">0.0018</span></div>
 
   <label for="salesRegion">Select Country Where Bag Is Sold:</label>
   <select id="salesRegion">
@@ -63,6 +53,17 @@
   <div class="output" id="results"></div>
 
   <script>
+    const weights = {
+      "10x15": 0.0018,
+      "15x20": 0.0032,
+      "20x25": 0.0046,
+      "25x30": 0.0066,
+      "30x40": 0.0103,
+      "35x50": 0.0146,
+      "40x60": 0.0207,
+      "50x75": 0.0298
+    };
+
     const feeRates = {
       france:    { paper: { epr: 120, tax: 0 }, plastic: { epr: 140, tax: 250 } },
       germany:   { paper: { epr: 130, tax: 0 }, plastic: { epr: 150, tax: 280 } },
@@ -74,8 +75,14 @@
       austria:   { paper: { epr: 110, tax: 0 }, plastic: { epr: 130, tax: 250 } }
     };
 
-    function calculateFees() {
-      const weight = parseFloat(document.getElementById('weight').value);
+    function updateWeightAndFees() {
+      const size = document.getElementById('bagSize').value;
+      const weight = weights[size] || 0;
+      document.getElementById('weightDisplay').textContent = weight.toFixed(4);
+      calculateFees(weight);
+    }
+
+    function calculateFees(weight) {
       const material = document.getElementById('materialType').value;
       const salesRegion = document.getElementById('salesRegion').value;
 
@@ -92,11 +99,12 @@
         `Total Cost per Bag: €${total.toFixed(4)}`;
     }
 
-    document.getElementById('productionRegion').addEventListener('change', calculateFees);
-    document.getElementById('materialType').addEventListener('change', calculateFees);
-    document.getElementById('bagSize').addEventListener('change', calculateFees);
-    document.getElementById('weight').addEventListener('change', calculateFees);
-    document.getElementById('salesRegion').addEventListener('change', calculateFees);
+    document.getElementById('productionRegion').addEventListener('change', updateWeightAndFees);
+    document.getElementById('materialType').addEventListener('change', updateWeightAndFees);
+    document.getElementById('bagSize').addEventListener('change', updateWeightAndFees);
+    document.getElementById('salesRegion').addEventListener('change', updateWeightAndFees);
+
+    updateWeightAndFees();
   </script>
 </body>
 </html>
