@@ -16,7 +16,12 @@
   <label for="productionRegion">Select Production Region:</label>
   <select id="productionRegion">
     <option value="italy">Italy</option>
-    <!-- Asia option can be added later -->
+  </select>
+
+  <label for="materialType">Select Bag Style / Material:</label>
+  <select id="materialType">
+    <option value="vela">Vela Classic (paper)</option>
+    <option value="ldpe">Virgin LDPE Polybag (plastic)</option>
   </select>
 
   <label for="bagSize">Select Bag Size:</label>
@@ -31,39 +36,67 @@
     <option value="50x75">50x75 (3XL)</option>
   </select>
 
-  <label for="weight">Bag Weight (kg):</label>
-  <input type="number" id="weight" readonly />
+  <label for="weight">Select Bag Weight (kg):</label>
+  <select id="weight">
+    <option value="0.0018">0.0018</option>
+    <option value="0.0032">0.0032</option>
+    <option value="0.0046">0.0046</option>
+    <option value="0.0066">0.0066</option>
+    <option value="0.0103">0.0103</option>
+    <option value="0.0146">0.0146</option>
+    <option value="0.0207">0.0207</option>
+    <option value="0.0298">0.0298</option>
+  </select>
+
+  <label for="salesRegion">Select Country Where Bag Is Sold:</label>
+  <select id="salesRegion">
+    <option value="france">France</option>
+    <option value="germany">Germany</option>
+    <option value="italy">Italy</option>
+    <option value="spain">Spain</option>
+    <option value="netherlands">Netherlands</option>
+    <option value="uk">United Kingdom</option>
+    <option value="belgium">Belgium</option>
+    <option value="austria">Austria</option>
+  </select>
+
+  <div class="output" id="results"></div>
 
   <script>
-    const italyWeights = {
-      "10x15": 0.0018,
-      "15x20": 0.0032,
-      "20x25": 0.0046,
-      "25x30": 0.0066,
-      "30x40": 0.0103,
-      "35x50": 0.0146,
-      "40x60": 0.0207,
-      "50x75": 0.0298
+    const feeRates = {
+      france:    { paper: { epr: 120, tax: 0 }, plastic: { epr: 140, tax: 250 } },
+      germany:   { paper: { epr: 130, tax: 0 }, plastic: { epr: 150, tax: 280 } },
+      italy:     { paper: { epr: 110, tax: 0 }, plastic: { epr: 130, tax: 240 } },
+      spain:     { paper: { epr: 100, tax: 0 }, plastic: { epr: 120, tax: 230 } },
+      netherlands:{ paper: { epr: 140, tax: 0 }, plastic: { epr: 160, tax: 300 } },
+      uk:        { paper: { epr: 130, tax: 0 }, plastic: { epr: 140, tax: 270 } },
+      belgium:   { paper: { epr: 120, tax: 0 }, plastic: { epr: 150, tax: 260 } },
+      austria:   { paper: { epr: 110, tax: 0 }, plastic: { epr: 130, tax: 250 } }
     };
 
-    function updateWeight() {
-      const region = document.getElementById('productionRegion').value;
-      const size = document.getElementById('bagSize').value;
-      let weight = 0;
+    function calculateFees() {
+      const weight = parseFloat(document.getElementById('weight').value);
+      const material = document.getElementById('materialType').value;
+      const salesRegion = document.getElementById('salesRegion').value;
 
-      if (region === 'italy') {
-        weight = italyWeights[size] || 0;
-      }
-      // Placeholder: Add Asia logic later
+      const materialType = material === 'vela' ? 'paper' : 'plastic';
+      const fees = feeRates[salesRegion][materialType];
 
-      document.getElementById('weight').value = weight;
+      const epr = (fees.epr / 1000) * weight;
+      const tax = (fees.tax / 1000) * weight;
+      const total = epr + tax;
+
+      document.getElementById('results').innerText =
+        `EPR Fee: €${epr.toFixed(4)}\n` +
+        `Plastic Tax: €${tax.toFixed(4)}\n` +
+        `Total Cost per Bag: €${total.toFixed(4)}`;
     }
 
-    document.getElementById('productionRegion').addEventListener('change', updateWeight);
-    document.getElementById('bagSize').addEventListener('change', updateWeight);
-
-    // Trigger default weight on load
-    updateWeight();
+    document.getElementById('productionRegion').addEventListener('change', calculateFees);
+    document.getElementById('materialType').addEventListener('change', calculateFees);
+    document.getElementById('bagSize').addEventListener('change', calculateFees);
+    document.getElementById('weight').addEventListener('change', calculateFees);
+    document.getElementById('salesRegion').addEventListener('change', calculateFees);
   </script>
 </body>
 </html>
