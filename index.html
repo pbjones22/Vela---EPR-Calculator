@@ -1,1 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vela EPR Cost Calculator</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; }
+    label, select, input { display: block; margin: 10px 0; }
+    .output { margin-top: 20px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>Vela EPR Cost Calculator</h1>
 
+  <label for="bagType">Select Bag Type:</label>
+  <select id="bagType">
+    <option value="vela">Vela Classic</option>
+    <option value="vela_plus">Vela Plus</option>
+    <option value="hybrid">Vela Hybrid</option>
+    <option value="ldpe">LDPE Polybag</option>
+  </select>
+
+  <label for="weight">Bag Weight (g):</label>
+  <input type="number" id="weight" value="32" />
+
+  <label for="quantity">Bag Quantity:</label>
+  <input type="number" id="quantity" value="1000" />
+
+  <label for="region">Select Region:</label>
+  <select id="region">
+    <option value="usa">USA ($0.04/lb for paper, $0.63/lb for plastic)</option>
+    <option value="germany">Germany (€0.13/kg for paper, €0.15/kg for plastic)</option>
+  </select>
+
+  <div class="output" id="results"></div>
+
+  <script>
+    const rates = {
+      usa: { paper: 0.04, plastic: 0.63, unit: 'USD/lb' },
+      germany: { paper: 0.13, plastic: 0.15, unit: 'EUR/kg' }
+    };
+
+    const weights = {
+      vela: { paper: 1.0, plastic: 0.0 },
+      vela_plus: { paper: 1.0, plastic: 0.0 },
+      hybrid: { paper: 0.7, plastic: 0.3 },
+      ldpe: { paper: 0.0, plastic: 1.0 }
+    };
+
+    function calculate() {
+      const bagType = document.getElementById('bagType').value;
+      const weightG = parseFloat(document.getElementById('weight').value);
+      const quantity = parseInt(document.getElementById('quantity').value);
+      const region = document.getElementById('region').value;
+      const rate = rates[region];
+      const bagComp = weights[bagType];
+
+      const weightLb = weightG / 453.592;
+      const weightKg = weightG / 1000;
+
+      let costPaper = 0, costPlastic = 0;
+
+      if (region === 'usa') {
+        costPaper = rate.paper * bagComp.paper * weightLb * quantity;
+        costPlastic = rate.plastic * bagComp.plastic * weightLb * quantity;
+      } else {
+        costPaper = rate.paper * bagComp.paper * weightKg * quantity;
+        costPlastic = rate.plastic * bagComp.plastic * weightKg * quantity;
+      }
+
+      const totalCost = costPaper + costPlastic;
+      const unit = rate.unit;
+
+      document.getElementById('results').innerText = `Total EPR Cost: ${totalCost.toFixed(2)} ${unit.split('/')[0]}\nCost per Bag: ${(totalCost / quantity).toFixed(4)} ${unit.split('/')[0]}`;
+    }
+
+    document.getElementById('bagType').addEventListener('change', calculate);
+    document.getElementById('weight').addEventListener('input', calculate);
+    document.getElementById('quantity').addEventListener('input', calculate);
+    document.getElementById('region').addEventListener('change', calculate);
+
+    calculate();
+  </script>
+</body>
+</html>
